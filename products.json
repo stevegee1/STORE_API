@@ -1,0 +1,27 @@
+[
+
+
+
+    {
+       
+        "name":"segun",
+        "price":60,
+        "featured":false,
+        "rating":5,
+        "company":"ikea"
+    },
+
+     {
+       "name": "oiza",
+       "price": 0,
+       "rating": 5,
+       "company": "ikea"
+     },
+      {
+        "name": "ogar",
+        "price": 60,
+        "featured": false,
+        "rating": 5,
+        "company": "ikea"
+      }
+]

@@ -2,7 +2,19 @@ const productDB = require("../Models/storeAPI_Model");
 
 const getAllProductsStatic = async (req, res) => {
   console.log(req.query);
-  const { featured, company, name, sort,createdAt,fields,limit } = req.query;
+  const {
+    featured,
+    company,
+    name,
+    sort,
+    createdAt,
+    filterPrice,
+    fields,
+    limit,
+    pageNumber,
+    numericFilter
+  } = req.query;
+  console.log(limit);
 
   const queryObject = {};
   if (featured) {
@@ -14,27 +26,47 @@ const getAllProductsStatic = async (req, res) => {
   if (name) {
     queryObject.name = { $regex: name, $options: "i" };
   }
+  if (filterPrice) {
+    queryObject.price={$lt:Number(filterPrice)}
+  }
+if (numericFilter){
+  const operatorMap={
+    ">":"$gt",
+    ">=":"$gte",
+    "=":"$eq",
+    "<":"$lt",
+    "<=":"$lte"
+  }
+  const regEx= /\b(<|>|<=|=|>=)\b/g
+  let filters=numericFilter.replace(regEx,(match)=>`-${operatorMap[match]}-`)
+  console.log(filters)
+}
+  let x = productDB.find(queryObject);
+  if (sort) {
+    const sortList = sort.split(",").join(" ");
+    //console.log(sortList)
+    x = x.sort(sortList);
+  }
+  if (createdAt) {
+    x = x.select("createdAt");
+  }
+  if (fields) {
+    const fieldList = fields.split(",").join(" ");
+    //console.log(fieldList)
+    x = x.select(fieldList);
+    // x=x.limit(limit)
+  }
 
-  let x =  productDB.find(queryObject)
-if(sort){
-  const sortList= sort.split(",").join(' ')
-  console.log(sortList)
-  x= x.sort(sortList)
-}
-if (createdAt){
-  x= x.select("createdAt")
-}
-if (fields){
-  const fieldList= fields.split(",").join(" ")
-  console.log(fieldList)
-  x=x.select(fieldList)
- // x=x.limit(limit)
-
-}
-if (limit){
-  x= x.limit(limit)
-}
-  const product= await x
+  if (limit) {
+    const y = Number(limit);
+    console.log(typeof y);
+    x = x.limit(limit);
+  }
+  if (pageNumber) {
+    const skip = (pageNumber - 1) * limit;
+    x = x.skip(skip);
+  }
+  const product = await x;
   res.status(200).json({ msg: product });
 
   // const x = await productDB.find(queryObject);

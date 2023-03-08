@@ -1,3 +1,5 @@
+//Define route model for each route
+
 const express= require("express")
 const { getAllProductsStatic, getAllProducts,addTesting } = require("../controllers/product")
 const router= express.Router()

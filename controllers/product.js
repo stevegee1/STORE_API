@@ -12,35 +12,60 @@ const getAllProductsStatic = async (req, res) => {
     fields,
     limit,
     pageNumber,
-    numericFilter
+    numericFilter,
   } = req.query;
   console.log(limit);
 
-  const queryObject = {};
+  const queryObject = {}; //created an empty queryObject
+
+  //add element, feature, to our empty queryObject if the condition is true
   if (featured) {
     queryObject.featured = featured === "true" ? true : false;
   }
+  //add element, company, to our empty queryObject if the condition is true
   if (company) {
     queryObject.company = company;
   }
+
+  //add element, name, to our empty queryObject if the condition is true
   if (name) {
     queryObject.name = { $regex: name, $options: "i" };
   }
+  //add element, filterPrice, to our empty queryObject if the condition is true
   if (filterPrice) {
-    queryObject.price={$lt:Number(filterPrice)}
+    queryObject.price = { $lt: Number(filterPrice) };
   }
-if (numericFilter){
-  const operatorMap={
-    ">":"$gt",
-    ">=":"$gte",
-    "=":"$eq",
-    "<":"$lt",
-    "<=":"$lte"
+  if (numericFilter) {
+    //define an object to match the operator to the regex mongodb understands
+    const operatorMap = {
+      ">": "$gt",
+      ">=": "$gte",
+      "=": "$eq",
+      "<": "$lt",
+      "<=": "$lte",
+    };
+    //define a regex for our string manipulation and pattern matching
+    const regEx = /\b(<|>|<=|=|>=)\b/g;
+
+    //replace if it matches our pattern
+    let filters = numericFilter.replace(
+      regEx,
+      (match) => `-${operatorMap[match]}-`
+    );
+    console.log(filters);
+    const options = ["price", "rating"];
+
+    //creating an object
+    filters = filters.split(",").forEach((item) => {
+      const [field, operator, value] = item.split("-");
+      if (options.includes(field)) {
+        queryObject[field] = {
+          [operator]: Number(value),
+        };
+      }
+    });
   }
-  const regEx= /\b(<|>|<=|=|>=)\b/g
-  let filters=numericFilter.replace(regEx,(match)=>`-${operatorMap[match]}-`)
-  console.log(filters)
-}
+  console.log(queryObject);
   let x = productDB.find(queryObject);
   if (sort) {
     const sortList = sort.split(",").join(" ");
@@ -84,14 +109,14 @@ const getAllProducts = async (req, res) => {
   res.status(200).json({ msg: x });
 };
 const addTesting = async (req, res) => {
-  //const {name, price}= req.body
-  console.log(req.body);
+  const x= req.body
 
   const cask = await productDB.create(req.body);
-  res.status(200).json({ cask });
-  if (!cask) {
-    throw new Error("adding value failed");
-  }
+  
+ // throw new Error("adding value failed");
+ if (!cask) throw Error("Access denied")
+  // res.status(200).json({ cask });
+  console.log(cask);
 };
 
 module.exports = { getAllProductsStatic, getAllProducts, addTesting };
